@@ -24,10 +24,12 @@ twitter_username: dcaunt
 github_username:  dcaunt
 
 # Build settings
+permalink: /blog/:year/:month/:title
 markdown: kramdown
 theme: minima
 gems:
   - jekyll-feed
+  - jekyll-redirect-from
 exclude:
   - Gemfile
   - Gemfile.lock

@@ -3,6 +3,7 @@ layout: post
 title:  "Himotoki Tutorial"
 date:   2016-07-14 19:00:00 +0000
 categories: swift ios
+redirect_from: "/himotoki-tutorial"
 ---
 [Himotoki](https://github.com/ikesyo/Himotoki) is a simple yet powerful library for decoding JSON. From the project page:
 
@@ -13,7 +14,7 @@ This article provides a brief tutorial and Xcode Playground to help learn how to
 # Basic Decoding
 
 As you can see from the Himotoki README, creating a model and specifying how to decode it from JSON is fairly straightforward:
-{% highlight swift %}
+```swift
 struct Group: Decodable {
     let name: String
     let floor: Int
@@ -31,7 +32,7 @@ struct Group: Decodable {
         )
     }
 }
-{% endhighlight %}
+```
 
 Himotoki can decode any generic type `T`  conforming to its `Decodable` protocol using the operators below. We’ll see how to implement Decodable in our own code later.
 
@@ -47,7 +48,7 @@ Himotoki can decode any generic type `T`  conforming to its `Decodable` protocol
 # Advanced Decoding
 
 Let’s assume we have the following JSON representing a series of musical bands:
-{% highlight json %}
+```json
 {
   "objects": [
     {
@@ -98,7 +99,7 @@ Let’s assume we have the following JSON representing a series of musical bands
   ],
   "last_updated": "2016-05-17T22:43:04.000000+00:00"
 }
-{% endhighlight %}
+```
 
 This JSON is straightforward, yet interesting enough to give our model several requirements. There are a couple of different date formats (`last_updated` and `birth_date`), and a field which can be represented as an enumerated type (`active`). The optional `homepage` property should really be represented as an `NSURL`. Finally, this structure represents a generic collection of `objects`, so it would be nice to re-use that collection for other types.
 
@@ -106,7 +107,7 @@ This JSON is straightforward, yet interesting enough to give our model several r
 
 We define the following `struct` types to model our data.
 
-{% highlight swift %}
+```swift
 struct BandResponse {
     let objects: [Band]
     let lastUpdated: NSDate?
@@ -129,14 +130,14 @@ struct BandMember {
     let name: String
     let birthDate: NSDate
 }
-{% endhighlight %}
+```
 
 ### Decodable
 
 Through the power of generics, Himotoki can automatically decode extracted values from JSON to their correct types. To add support for `NSURL`, we define an Extension:
 
 
-{% highlight swift %}
+```swift
 extension NSURL: Decodable {
     public static func decode(e: Extractor) throws -> Self {
         let rawValue = try String.decode(e)
@@ -148,11 +149,11 @@ extension NSURL: Decodable {
         return result
     }
 }
-{% endhighlight %}
+```
 
 We also need to implement Decodable for our own types, `Band`, `BandMember` and `BandResponse`:
 
-{% highlight swift %}
+```swift
 extension BandResponse: Decodable {
     static func decode(e: Extractor) throws -> BandResponse {
         return try BandResponse(objects: e <|| "objects",
@@ -180,14 +181,14 @@ extension Band: Decodable {
 }
 
 extension Band.Status: Decodable {}
-{% endhighlight %}
+```
 
 Note that Himotoki provides a protocol extension for `RawRepresentable` types, so conforming to `Decodable` is enough as enums with a `RawValue` conform to this protocol.
 
 Finally, we implement two transformers for decoding the two date formats:
 
 
-{% highlight swift %}
+```swift
 public let DateTransformer = Transformer<String, NSDate> { dateString throws -> NSDate in
     let dateFormatter = NSDateFormatter()
     dateFormatter.locale = NSLocale(localeIdentifier: "en_US_POSIX")
@@ -213,7 +214,7 @@ public let DateTimeTransformer = Transformer<String, NSDate> { dateString throws
 
     throw customError("Invalid datetime string: \(dateString)")
 }
-{% endhighlight %}
+```
 
 These only vary in the `dateFormat` provided to the `NSDateFormatter`, so we could probably factor this out.
 
@@ -221,14 +222,14 @@ If all date representations in JSON have the same format, we can define an `Exte
 
 Given the above, we can now decode some JSON:
 
-{% highlight swift %}
+```swift
 do {
     let response = try BandResponse.decodeValue(bandJSON)
     print(response?.objects.first?.name) // Beatles
 } catch {
     print(error)
 }
-{% endhighlight %}
+```
 
 If the JSON is valid, you’ll have a `BandResponse` representation, and if not, `error` will contain information on the first failure.
 
@@ -236,15 +237,15 @@ If the JSON is valid, you’ll have a `BandResponse` representation, and if not,
 
 We can improve upon our BandResponse struct by using generics. We define a `struct` `Response` which is generic over `Decodable`:
 
-{% highlight swift %}
+```swift
 struct Response<T: Decodable> {
     let objects: [T]
     let lastUpdated: NSDate?
 }
-{% endhighlight %}
+```
 and implement `Decodable`:
 
-{% highlight swift %}
+```swift
 extension Response: Decodable {
     static func decode<T: Decodable>(e: Extractor) throws -> Response<T> {
         return try Response<T>(objects: e <|| "objects",
@@ -252,18 +253,18 @@ extension Response: Decodable {
         )
     }
 }
-{% endhighlight %}
+```
 
 Now we can decode the JSON to our generic collection:
 
-{% highlight swift %}
+```swift
 do {
     let response = try Response<Band>.decodeValue(bandJSON)
 	print(response?.objects.first?.name) // Beatles
 } catch {
     print(error)
 }
-{% endhighlight %}
+```
 
 And we’re done!
 
