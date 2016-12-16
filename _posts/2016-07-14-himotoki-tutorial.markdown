@@ -14,6 +14,7 @@ This article provides a brief tutorial and Xcode Playground to help learn how to
 # Basic Decoding
 
 As you can see from the Himotoki README, creating a model and specifying how to decode it from JSON is fairly straightforward:
+
 ```swift
 struct Group: Decodable {
     let name: String
@@ -48,6 +49,7 @@ Himotoki can decode any generic type `T`  conforming to its `Decodable` protocol
 # Advanced Decoding
 
 Let’s assume we have the following JSON representing a series of musical bands:
+
 ```json
 {
   "objects": [
